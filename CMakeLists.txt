@@ -7,6 +7,7 @@ set( OpenARK_VERSION_MAJOR 0 )
 set( OpenARK_VERSION_MINOR 9 )
 set( OpenARK_VERSION_PATCH 3 )
 set( INCLUDE_DIR "${PROJECT_SOURCE_DIR}/include" )
+set( CMAKE_PREFIX_PATH "C:/Users/alanl/Portable/")
 
 set( CMAKE_CXX_STACK_SIZE "10000000" )
 set( CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake_modules" )
@@ -23,14 +24,14 @@ set( DATA_RECORDING_NAME "OpenARK_data_recording")
 set( TEST_NAME "OpenARK_test" )
 set( UNITY_PLUGIN_NAME "UnityPlugin" )
 
-option( BUILD_HAND_DEMO "BUILD_HAND_DEMO" ON )
+option( BUILD_HAND_DEMO "BUILD_HAND_DEMO" OFF )
 option( BUILD_AVATAR_DEMO "BUILD_AVATAR_DEMO" OFF)
 option( BUILD_SLAM_DEMO "BUILD_SLAM_DEMO" ON)
 option( BUILD_DATA_RECORDING "BUILD_DATA_RECORDING" OFF)
 option( BUILD_TESTS "BUILD_TESTS" OFF )
-option( BUILD_UNITY_PLUGIN "BUILD_UNITY_PLUGIN" ON )
-option( USE_AZURE_KINECT_SDK "USE_AZURE_KINECT_SDK" ON )
-option( USE_RSSDK2 "USE_RSSDK2" OFF )
+option( BUILD_UNITY_PLUGIN "BUILD_UNITY_PLUGIN" OFF )
+option( USE_AZURE_KINECT_SDK "USE_AZURE_KINECT_SDK" OFF )
+option( USE_RSSDK2 "USE_RSSDK2" ON )
 option( USE_RSSDK "USE_RSSDK" OFF )
 option( USE_PMDSDK "USE_PMDSDK" OFF )
 
@@ -122,8 +123,8 @@ ENDIF( DBoW2_FOUND )
 # require DLoopDetector
 find_package( DLoopDetector REQUIRED )
 IF( DLoopDetector_FOUND )
-    MESSAGE( STATUS "Found DLoopDetector: ${DLoopDetector_INCLUDE_DIRS} ${DLoopDetector_LIBRARIES}" )
-   include_directories(${DLoopDetector_INCLUDE_DIRS})
+    MESSAGE( STATUS "Found DLoopDetector: $ENV{DLoopDetector_INCLUDE_DIR} $ENV{DLoopDetector_LIBRARIES}" )
+   include_directories($ENV{DLoopDetector_INCLUDE_DIR})
 ENDIF( DLoopDetector_FOUND )
 
 # require Okvis
@@ -132,11 +133,11 @@ include_directories(${OKVIS_INCLUDE_DIRS})
 message(STATUS "Found Okvis: ${OKVIS_INCLUDE_DIRS} ${OKVIS_LIBRARIES}")
 
 # require OpenGV (should come with Okvis)
-if( DEFINED ENV{ARK_DEPS_DIR} )
-    find_package( OpenGV REQUIRED NO_MODULE )
-else()
+#if( DEFINED ENV{ARK_DEPS_DIR} )
+#    find_package( OpenGV REQUIRED NO_MODULE )
+#else()
     find_package( OpenGV REQUIRED )
-endif( DEFINED ENV{ARK_DEPS_DIR} )
+#endif( DEFINED ENV{ARK_DEPS_DIR} )
 IF(OPENGV_FOUND)
     MESSAGE(STATUS "Found OpenGV: ${OPENGV_INCLUDE_DIR} ${OPENGV_LIBRARIES}")
 ENDIF(OPENGV_FOUND)
@@ -149,10 +150,10 @@ ENDIF(Ceres_FOUND)
 include_directories(${CERES_INCLUDE_DIRS})
 
 # require SuiteSparse
-find_package( SuiteSparse QUIET )
-IF(SuiteSparse_FOUND)
-    MESSAGE(STATUS "Found SuiteSparse: ${SuiteSparse_INCLUDE_DIRS} ${SuiteSparse_LIBRARIES}")
-ENDIF(SuiteSparse_FOUND)
+# find_package( SuiteSparse QUIET )
+# IF(SuiteSparse_FOUND)
+#     MESSAGE(STATUS "Found SuiteSparse: ${SuiteSparse_INCLUDE_DIRS} ${SuiteSparse_LIBRARIES}")
+# ENDIF(SuiteSparse_FOUND)
 #include_directories(${SuiteSparse_INCLUDE_DIRS})
 
 find_package(OpenMP)
@@ -215,7 +216,7 @@ set(
   ${OpenCV_LIBRARIES}
   ${PCL_LIBRARIES}
   ${GLOG_LIBRARIES} #${CXSPARSE_LIBRARIES}
-  ${SuiteSparse_LIBRARIES}
+  # ${SuiteSparse_LIBRARIES}
   ${OKVIS_LIBRARIES}
   ${CERES_LIBRARIES}
   ${BRISK_LIBRARIES}
