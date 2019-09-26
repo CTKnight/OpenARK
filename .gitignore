@@ -263,6 +263,7 @@ paket-files/
 # FAKE - F# Make
 .fake/
 
+
 # JetBrains Rider
 .idea/
 *.sln.iml
@@ -292,3 +293,16 @@ include/Version.h
 # Cake - Uncomment if you are using it
 # tools/**
 # !tools/packages.config
+
+# Model files
+*.pcd
+data/avatar-model/*.txt
+data/avatar-model/*.pkl
+
+# Config files
+config/brisk_vocab.bn
+config/face/lbfmodel.yaml
+config/pose-net/pose.caffemodel
+
+# vscode config
+.vscode
