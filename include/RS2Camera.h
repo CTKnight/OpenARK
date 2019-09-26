@@ -120,7 +120,11 @@ namespace ark {
         double scale;
         int width, height;
         bool useRGBStream;
+        // members for imu recording
+        rs2::config motion_config;
         std::atomic<bool> kill;
+        bool includeImu;
+        std::shared_ptr<rs2::pipeline> motion_pipe;
         double last_ts_g;
         std::thread imuReaderThread_;
         single_consumer_queue<ImuPair> imu_queue_;

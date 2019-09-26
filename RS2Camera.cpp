@@ -11,7 +11,7 @@
 /** RealSense SDK2 Cross-Platform Depth Camera Backend **/
 namespace ark {
 	RS2Camera::RS2Camera(bool use_rgb_stream, bool includeImu)
-		: align(RS2_STREAM_COLOR), useRGBStream(use_rgb_stream), kill(false), last_ts_g(0) {
+		: align(RS2_STREAM_COLOR), useRGBStream(use_rgb_stream), includeImu(includeImu), kill(false), last_ts_g(0) {
 		pipe = std::make_shared<rs2::pipeline>();
 
 		query_intrinsics();
@@ -39,8 +39,10 @@ namespace ark {
 
 	RS2Camera::~RS2Camera() {
 		try {
-			kill=true;
-            imuReaderThread_.join();
+			if (includeImu) {
+				kill=true;
+            	imuReaderThread_.join();
+			}
 			pipe->stop();
 		}
 		catch (...) {}
@@ -193,11 +195,18 @@ namespace ark {
 		config.enable_stream(RS2_STREAM_DEPTH, width, height, RS2_FORMAT_Z16);
 		if (useRGBStream) config.enable_stream(RS2_STREAM_COLOR, width, height, RS2_FORMAT_BGR8);
 		else config.enable_stream(RS2_STREAM_INFRARED, width, height, RS2_FORMAT_Y8);
+		
+		motion_config.enable_stream(RS2_STREAM_ACCEL, RS2_FORMAT_MOTION_XYZ32F,250);
+        motion_config.enable_stream(RS2_STREAM_GYRO, RS2_FORMAT_MOTION_XYZ32F,200);
 	}
 
 	void RS2Camera::beginCapture(int fps_cap, bool remove_noise) {
 		DepthCamera::beginCapture(fps_cap, remove_noise);
-		imuReaderThread_ = std::thread(&RS2Camera::imuReader, this);
+		if (includeImu) {
+			motion_pipe = std::make_shared<rs2::pipeline>();
+        	motion_pipe->start(motion_config);
+			imuReaderThread_ = std::thread(&RS2Camera::imuReader, this);
+		}
 	}
 
 	void RS2Camera::endCapture() {
@@ -207,7 +216,7 @@ namespace ark {
 
 	void RS2Camera::imuReader(){
         while(!kill){
-            auto frames = pipe->wait_for_frames();
+            auto frames = motion_pipe->wait_for_frames();
             auto fa = frames.first(RS2_STREAM_ACCEL, RS2_FORMAT_MOTION_XYZ32F)
                 .as<rs2::motion_frame>();
             auto fg = frames.first(RS2_STREAM_GYRO, RS2_FORMAT_MOTION_XYZ32F)
