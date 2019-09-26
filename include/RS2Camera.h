@@ -64,7 +64,7 @@ namespace ark {
          */
         bool hasIRMap() const override;
 
-        void beginCapture(int fps_cap, bool remove_noise) override;
+        void beginCapture(int fps_cap = -1, bool remove_noise = true) override;
 
         void endCapture() override;
 

@@ -72,9 +72,13 @@ int main(int argc, char ** argv) {
 	}
     cv::Vec4d intrin;
 
-#ifndef INCLUDE_IMU
+
 
 #ifndef SKIP_RECORD
+#ifdef INCLUDE_IMU
+	auto camera = std::make_shared<RS2Camera>(true, true);
+	std::vector<ImuPair> imuData;
+#else
 	// initialize the camera
 	DepthCamera::Ptr camera;
 
@@ -90,14 +94,12 @@ int main(int argc, char ** argv) {
 #endif
 
     std::cerr << "Starting data recording, saving to: " << directory_path.string() << "\n";
+#endif
+
 #ifndef AZURE_KINECT_ENABLED
     auto capture_start_time = std::chrono::high_resolution_clock::now();
 #endif
 
-#else
-	auto camera = std::make_shared<RS2Camera>(true, true);
-	std::vector<ImuPair> imuData;
-#endif
 	// turn on the camera
 	camera->beginCapture();
 
