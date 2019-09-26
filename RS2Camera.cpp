@@ -1,3 +1,4 @@
+#include <atomic>
 #include "stdafx.h"
 #include "Version.h"
 #include "RS2Camera.h"
@@ -9,7 +10,8 @@
 
 /** RealSense SDK2 Cross-Platform Depth Camera Backend **/
 namespace ark {
-	RS2Camera::RS2Camera(bool use_rgb_stream) : align(RS2_STREAM_COLOR), useRGBStream(use_rgb_stream) {
+	RS2Camera::RS2Camera(bool use_rgb_stream, bool includeImu)
+		: align(RS2_STREAM_COLOR), useRGBStream(use_rgb_stream), kill(false), last_ts_g(0) {
 		pipe = std::make_shared<rs2::pipeline>();
 
 		query_intrinsics();
@@ -37,6 +39,8 @@ namespace ark {
 
 	RS2Camera::~RS2Camera() {
 		try {
+			kill=true;
+            imuReaderThread_.join();
 			pipe->stop();
 		}
 		catch (...) {}
@@ -190,4 +194,53 @@ namespace ark {
 		if (useRGBStream) config.enable_stream(RS2_STREAM_COLOR, width, height, RS2_FORMAT_BGR8);
 		else config.enable_stream(RS2_STREAM_INFRARED, width, height, RS2_FORMAT_Y8);
 	}
+
+	void RS2Camera::beginCapture(int fps_cap, bool remove_noise) {
+		DepthCamera::beginCapture(fps_cap, remove_noise);
+		imuReaderThread_ = std::thread(&RS2Camera::imuReader, this);
+	}
+
+	void RS2Camera::endCapture() {
+		DepthCamera::endCapture();
+		kill = true;
+	}
+
+	void RS2Camera::imuReader(){
+        while(!kill){
+            auto frames = pipe->wait_for_frames();
+            auto fa = frames.first(RS2_STREAM_ACCEL, RS2_FORMAT_MOTION_XYZ32F)
+                .as<rs2::motion_frame>();
+            auto fg = frames.first(RS2_STREAM_GYRO, RS2_FORMAT_MOTION_XYZ32F)
+                .as<rs2::motion_frame>();
+
+            double ts_g = fg.get_timestamp();
+            if(ts_g != last_ts_g){
+                last_ts_g=ts_g;
+                // std::cout << "GYRO: " << ts_g / 1e2 << std::endl;
+                // Get gyro measures
+                rs2_vector gyro_data = fg.get_motion_data();
+
+                // Get the timestamp of the current frame
+                double ts_a = fa.get_timestamp();
+                //std::cout << "ACCEL: " << ts_a  <<  std::endl;
+                // Get accelerometer measures
+                rs2_vector accel_data = fa.get_motion_data();
+
+                ImuPair imu_out { double(ts_g)*1e6, //convert to nanoseconds, for some reason gyro timestamp is in centiseconds
+                    Eigen::Vector3d(gyro_data.x,gyro_data.y,gyro_data.z),
+                    Eigen::Vector3d(accel_data.x,accel_data.y,accel_data.z)};
+                imu_queue_.enqueue(imu_out);
+            }
+        }
+
+    }
+
+	std::vector<ImuPair> RS2Camera::getAllImu() {
+        std::vector<ImuPair> data_out;
+        ImuPair imu_data;
+        while(imu_queue_.try_dequeue(&imu_data)){
+            data_out.push_back(imu_data);
+        }
+        return data_out;
+    }
 }

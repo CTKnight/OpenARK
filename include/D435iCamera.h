@@ -54,6 +54,8 @@ namespace ark {
 
         bool getImuToTime(double timestamp, std::vector<ImuPair>& data_out);
 
+        std::vector<ImuPair> getAllImu();
+
     protected:
 
         /** Converts an D435 raw depth image to an ordered point cloud based on the current camera's intrinsics */

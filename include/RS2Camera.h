@@ -1,8 +1,11 @@
 #pragma once
 // OpenCV Libraries
 #include "Version.h"
+#include "Types.h"
 #include <opencv2/core.hpp>
 #include <librealsense2/rs.hpp>
+#include "concurrency.h"
+#include <atomic>
 
 // OpenARK Libraries
 #include "DepthCamera.h"
@@ -22,7 +25,7 @@ namespace ark {
         * @param use_rgb_stream if true, uses the RGB stream and disable the IR stream (which is on by default)
         *                       This results in a smaller field of view and has an appreciable performance cost.
         */
-        explicit RS2Camera(bool use_rgb_stream = false);
+        explicit RS2Camera(bool use_rgb_stream = false, bool includeImu = false);
 
         /**
         * Destructor for the RealSense Camera.
@@ -61,6 +64,19 @@ namespace ark {
          */
         bool hasIRMap() const override;
 
+        void beginCapture(int fps_cap, bool remove_noise) override;
+
+        void endCapture() override;
+
+        /**
+         * should be run in separate thread, set kill to end
+         */
+        void imuReader();
+
+        /**
+         * 
+         */
+        std::vector<ImuPair> getAllImu();
 
         /** Preferred frame height */
         const int PREFERRED_FRAME_H = 480;
@@ -104,6 +120,10 @@ namespace ark {
         double scale;
         int width, height;
         bool useRGBStream;
+        std::atomic<bool> kill;
+        double last_ts_g;
+        std::thread imuReaderThread_;
+        single_consumer_queue<ImuPair> imu_queue_;
 
         mutable bool defaultParamsSet = false;
         mutable DetectionParams::Ptr defaultParams;

@@ -108,7 +108,14 @@ namespace ark {
 
     };
 
-
+    std::vector<ImuPair> D435iCamera::getAllImu() {
+        std::vector<ImuPair> data_out;
+        ImuPair imu_data;
+        while(imu_queue_.try_dequeue(&imu_data)){
+            data_out.push_back(imu_data);
+        }
+        return data_out;
+    }
 
     const std::string D435iCamera::getModelName() const {
         return "RealSense";

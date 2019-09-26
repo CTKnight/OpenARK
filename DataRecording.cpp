@@ -17,6 +17,12 @@
 // Uncomment below define to skip recording and go straight to preprocessing step
 //#define SKIP_RECORD
 
+// Uncomment this to skip preprocessing step
+#define SKIP_PREPROCESS
+
+// Uncomment this to record imu data
+#define INCLUDE_IMU
+
 // OpenARK Libraries
 #include "Version.h"
 #ifdef PMDSDK_ENABLED
@@ -51,18 +57,23 @@ int main(int argc, char ** argv) {
 
     using boost::filesystem::path;
 	const path directory_path = 
-        argc > 1 ? argv[1] : "/my/path"; // modify this
+        argc > 1 ? argv[1] : "./data_path"; // modify this
 
 	path depth_path = directory_path / "depth_exr/";
 	path rgb_path = directory_path / "rgb/";
 	path timestamp_path = directory_path / "timestamp.txt";
 	path intrin_path = directory_path / "intrin.txt";
+	path imu_path = directory_path / "imu.txt";
+
 	if (!boost::filesystem::exists(depth_path)) {
 		boost::filesystem::create_directories(depth_path);
 	} if (!boost::filesystem::exists(rgb_path)) {
 		boost::filesystem::create_directories(rgb_path);
 	}
     cv::Vec4d intrin;
+
+#ifndef INCLUDE_IMU
+
 #ifndef SKIP_RECORD
 	// initialize the camera
 	DepthCamera::Ptr camera;
@@ -83,6 +94,10 @@ int main(int argc, char ** argv) {
     auto capture_start_time = std::chrono::high_resolution_clock::now();
 #endif
 
+#else
+	auto camera = std::make_shared<RS2Camera>(true, true);
+	std::vector<ImuPair> imuData;
+#endif
 	// turn on the camera
 	camera->beginCapture();
 
@@ -170,7 +185,6 @@ int main(int argc, char ** argv) {
 	ARK_ASSERT(xyzMaps.size() == rgbMaps.size(), "Depth map and RGB map are not in sync!");
     
     std::ofstream timestamp_ofs(timestamp_path.string());
-
     int img_index = 0;
 	for (int i = 0; i < xyzMaps.size(); ++i) {
 		cout << "Writing " << i << " / " << xyzMaps.size() << endl;
@@ -190,6 +204,20 @@ int main(int argc, char ** argv) {
         ++img_index;
 	}
     timestamp_ofs.close();
+
+	#ifdef INCLUDE_IMU
+	cout << "Writing IMU Data to " << imu_path << endl;
+	std::ofstream imu_ofs(imu_path.string());
+	imuData = camera->getAllImu();
+	for (const auto &imuPair : imuData) {
+		imu_ofs << 
+			"ts " << imuPair.timestamp << "\n" <<
+			"gy " << imuPair.gyro[0] << " " << imuPair.gyro[1] << " " << imuPair.gyro[2] << "\n" <<
+			"ac " << imuPair.accel[0] << " " << imuPair.accel[1] << " " << imuPair.accel[2] << "\n";
+	}
+	imu_ofs.close();
+	
+	#endif
 
     // fit intrinsics from an XYZ map
     intrin = util::getCameraIntrinFromXYZ(xyzMaps[xyzMaps.size()/2]);
@@ -238,6 +266,8 @@ int main(int argc, char ** argv) {
     }
 
     // Save timestamps and joints
+
+	#ifndef SKIP_PREPROCESS
 
 	// Run neural network to predict where the human joints are
 	path joint_path = directory_path / "joint/";
@@ -321,6 +351,7 @@ int main(int argc, char ** argv) {
 		frame++;
 		cv::waitKey(1);
 	}
+	#endif
 	int c = cv::waitKey(1);
 	cv::destroyAllWindows();
 	return 0;

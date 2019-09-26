@@ -123,7 +123,7 @@ namespace ark {
          * @see endCapture
          * @see isCapturing
          */
-        void beginCapture(int fps_cap = -1, bool remove_noise = true);
+        virtual void beginCapture(int fps_cap = -1, bool remove_noise = true);
 
         /**
          * Stop capturing from this camera.
@@ -132,7 +132,7 @@ namespace ark {
          * @see beginCapture
          * @see isCapturing
          */
-        void endCapture();
+        virtual void endCapture();
 
         /**
          * Returns true if the camera is currently capturing, false otherwise.
