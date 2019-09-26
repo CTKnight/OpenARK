@@ -18,10 +18,10 @@
 //#define SKIP_RECORD
 
 // Uncomment this to skip preprocessing step
-#define SKIP_PREPROCESS
+// #define SKIP_PREPROCESS
 
 // Uncomment this to record imu data
-#define INCLUDE_IMU
+// #define INCLUDE_IMU
 
 // OpenARK Libraries
 #include "Version.h"
