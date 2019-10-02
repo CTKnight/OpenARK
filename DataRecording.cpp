@@ -21,7 +21,7 @@
 #define SKIP_PREPROCESS
 
 // Uncomment this to record imu data
-#define INCLUDE_IMU
+#define RECORD_SLAM
 
 // OpenARK Libraries
 #include "Version.h"
@@ -75,7 +75,7 @@ int main(int argc, char ** argv) {
 
 
 #ifndef SKIP_RECORD
-#ifdef INCLUDE_IMU
+#ifdef RECORD_SLAM
 	auto camera = std::make_shared<RS2Camera>(true, true);
 	std::vector<ImuPair> imuData;
 #else
@@ -207,7 +207,7 @@ int main(int argc, char ** argv) {
 	}
     timestamp_ofs.close();
 
-	#ifdef INCLUDE_IMU
+	#ifdef RECORD_SLAM
 	cout << "Writing IMU Data to " << imu_path << endl;
 	std::ofstream imu_ofs(imu_path.string());
 	imuData = camera->getAllImu();
