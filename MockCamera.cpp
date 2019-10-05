@@ -4,12 +4,13 @@
 namespace ark {
 	// Listing out all files in directory
 	// https://www.boost.org/doc/libs/1_57_0/libs/filesystem/example/simple_ls.cpp
-	MockCamera::MockCamera(const char* path)
+	MockCamera::MockCamera(const char* path, bool includeImu): includeImu(includeImu)
 	{
         typedef boost::filesystem::path fspath;
 		fspath file_path(path);
 		fspath intrin_path = file_path / "intrin.txt";
 		fspath timestamps_path = file_path / "timestamp.txt";
+		fspath imu_path = file_path / "imu.txt";
 
         std::ifstream intrin_ifs(intrin_path.string());
         

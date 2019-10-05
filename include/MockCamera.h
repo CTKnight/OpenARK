@@ -18,7 +18,7 @@ namespace ark {
 	class MockCamera : public DepthCamera
 	{
 	public:
-		explicit MockCamera(const char* path);
+		explicit MockCamera(const char* path, bool includeImu = false);
 
 		int getHeight() const override;
 
@@ -59,5 +59,9 @@ namespace ark {
 
         // camera intrinsics, if available
         double intr_fx, intr_fy, intr_cx, intr_cy = -1.;
+
+		// for imu replay
+		std::deque<std::string> imu_files;
+		bool includeImu;
 	};
 }
