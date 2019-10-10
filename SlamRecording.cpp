@@ -68,8 +68,6 @@ int main(int argc, char **argv)
         }
     }
 
-    std::ofstream imu_ofs(imu_path.string());
-
     std::vector<MultiCameraFrame> frameList;
     std::vector<ImuPair> imuList;
 
@@ -77,39 +75,46 @@ int main(int argc, char **argv)
     camera.start();
 
     std::vector<ImuPair> imuBuffer;
+    std::vector<ImuPair> imuDispose;
     std::atomic_bool paused = true;
     std::atomic_bool quit = false;
     int frameNum = 0;
     single_consumer_queue<std::shared_ptr<MultiCameraFrame>> img_queue;
     std::thread writingThread([&]() {
+        std::ofstream imu_ofs(imu_path.string());
+        std::ofstream timestamp_ofs(timestamp_path.string());
         auto frame = std::make_shared<MultiCameraFrame>();
         while (!quit)
         {
-            if (img_queue.try_dequeue(&frame))
+            if (!img_queue.try_dequeue(&frame))
             {
-                const auto frameId = frame->frameId_;
-                const auto &infrared = frame->images_[0];
-                const auto &infrared2 = frame->images_[1];
-                const auto &depth = frame->images_[2];
-                const auto &rgb = frame->images_[3];
-
-                saveImg(frameNum, infrared, infrared_path);
-                saveImg(frameNum, infrared2, infrared2_path);
-                saveImg(frameNum, depth, depth_path);
-                saveImg(frameNum, rgb, rgb_path);
-
-                imuBuffer.clear();
-                // extract all imu data ever since pause??
-                camera.getImuToTime(frame->timestamp_, imuBuffer);
-                for (const auto &imuPair : imuBuffer) {
-                    imu_ofs << 
-                        "ts " << std::setprecision (15) << imuPair.timestamp << "\n" <<
-                        "gy " << imuPair.gyro[0] << " " << imuPair.gyro[1] << " " << imuPair.gyro[2] << "\n" <<
-                        "ac " << imuPair.accel[0] << " " << imuPair.accel[1] << " " << imuPair.accel[2] << "\n";
-                }
-                frameNum++;
+                continue;
             }
+            const auto frameId = frame->frameId_;
+            const auto &infrared = frame->images_[0];
+            const auto &infrared2 = frame->images_[1];
+            const auto &depth = frame->images_[2];
+            const auto &rgb = frame->images_[3];
+
+            saveImg(frameNum, infrared, infrared_path);
+            saveImg(frameNum, infrared2, infrared2_path);
+            saveImg(frameNum, depth, depth_path);
+            saveImg(frameNum, rgb, rgb_path);
+
+            timestamp_ofs << frameId << " " << std::setprecision(15) << frame->timestamp_ << "\n";
+
+            imuBuffer.clear();
+            // extract all imu data ever since pause??
+            camera.getImuToTime(frame->timestamp_, imuBuffer);
+            for (const auto &imuPair : imuBuffer)
+            {
+                imu_ofs << "ts " << std::setprecision(15) << imuPair.timestamp << "\n"
+                        << "gy " << imuPair.gyro[0] << " " << imuPair.gyro[1] << " " << imuPair.gyro[2] << "\n"
+                        << "ac " << imuPair.accel[0] << " " << imuPair.accel[1] << " " << imuPair.accel[2] << "\n";
+            }
+            frameNum++;
         }
+        imu_ofs.close();
     });
 
     while (true)
@@ -123,6 +128,10 @@ int main(int argc, char **argv)
 
         if (paused)
         {
+            // clear the imu data in camera?
+            // extract all imu data ever since pause??
+            camera.getImuToTime(frame->timestamp_, imuDispose);
+            imuDispose.clear()
             const std::string NO_SIGNAL_STR = "PAUSED";
             const cv::Scalar RECT_COLOR = cv::Scalar(0, 160, 255);
             const int RECT_WID = 120, RECT_HI = 40;
