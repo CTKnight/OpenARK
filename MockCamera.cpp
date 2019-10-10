@@ -10,7 +10,6 @@ namespace ark {
 		fspath file_path(path);
 		fspath intrin_path = file_path / "intrin.txt";
 		fspath timestamps_path = file_path / "timestamp.txt";
-		fspath imu_path = file_path / "imu.txt";
 
         std::ifstream intrin_ifs(intrin_path.string());
         
