@@ -38,7 +38,7 @@ std::string getTimeTag()
 void saveImg(int id, const cv::Mat &img, const path imgDir)
 {
     std::stringstream fileName;
-    fileName << std::setw(4) << std::setfill('0') << std::to_string(id) << ".jpg";
+    fileName << std::setw(5) << std::setfill('0') << std::to_string(id) << ".jpg";
     const std::string dst = (imgDir / fileName.str()).string();
     cout << "Writing " << dst << endl;
     cv::imwrite(dst, img);
@@ -77,9 +77,41 @@ int main(int argc, char **argv)
     camera.start();
 
     std::vector<ImuPair> imuBuffer;
-    bool paused = true;
+    std::atomic_bool paused = true;
+    std::atomic_bool quit = false;
     int frameNum = 0;
-    single_consumer_queue<std::shared_ptr<MultiCameraFrame> > img_queue;
+    single_consumer_queue<std::shared_ptr<MultiCameraFrame>> img_queue;
+    std::thread writingThread([&]() {
+        auto frame = std::make_shared<MultiCameraFrame>();
+        while (!quit)
+        {
+            if (img_queue.try_dequeue(&frame))
+            {
+                const auto frameId = frame->frameId_;
+                const auto &infrared = frame->images_[0];
+                const auto &infrared2 = frame->images_[1];
+                const auto &depth = frame->images_[2];
+                const auto &rgb = frame->images_[3];
+
+                saveImg(frameNum, infrared, infrared_path);
+                saveImg(frameNum, infrared2, infrared2_path);
+                saveImg(frameNum, depth, depth_path);
+                saveImg(frameNum, rgb, rgb_path);
+
+                imuBuffer.clear();
+                // extract all imu data ever since pause??
+                camera.getImuToTime(frame->timestamp_, imuBuffer);
+                for (const auto &imuPair : imuBuffer) {
+                    imu_ofs << 
+                        "ts " << std::setprecision (15) << imuPair.timestamp << "\n" <<
+                        "gy " << imuPair.gyro[0] << " " << imuPair.gyro[1] << " " << imuPair.gyro[2] << "\n" <<
+                        "ac " << imuPair.accel[0] << " " << imuPair.accel[1] << " " << imuPair.accel[2] << "\n";
+                }
+                frameNum++;
+            }
+        }
+    });
+
     while (true)
     {
         // 0: infrared
@@ -88,14 +120,6 @@ int main(int argc, char **argv)
         // 3: rgb
         auto frame = std::make_shared<MultiCameraFrame>();
         camera.update(*frame);
-        // frameList.emplace_back(frame);
-
-        imuBuffer.clear();
-        camera.getImuToTime(frame->timestamp_, imuBuffer);
-
-        // for (const auto &imuPair: imuBuffer) {
-        //     imuList.emplace_back(imuPair);
-        // }
 
         if (paused)
         {
@@ -113,6 +137,10 @@ int main(int argc, char **argv)
                 cv::putText(img, NO_SIGNAL_STR, STR_POS, 0, 0.8, cv::Scalar(255, 255, 255), 1, cv::LINE_AA);
             }
         }
+        else
+        {
+            img_queue.enqueue(frame);
+        }
 
         const auto frameId = frame->frameId_;
         const auto &infrared = frame->images_[0];
@@ -122,21 +150,13 @@ int main(int argc, char **argv)
         cv::imshow(camera.getModelName() + " RGB", rgb);
         cv::imshow(camera.getModelName() + " Infrared", infrared);
         cv::imshow(camera.getModelName() + " Depth", depth);
-        if (!paused)
-        {
-            const auto frameId = frame->frameId_;
-            saveImg(frameNum, infrared, infrared_path);
-            saveImg(frameNum, infrared2, infrared2_path);
-            saveImg(frameNum, depth, depth_path);
-            saveImg(frameNum, rgb, rgb_path);
 
-            frameNum++;
-        }
         // visualize results
         int k = cv::waitKey(1);
         if (k == 'q' || k == 'Q' || k == 27)
         {
             // 27 is ESC
+            quit = true;
             break;
         }
         else if (k == ' ')
@@ -144,5 +164,6 @@ int main(int argc, char **argv)
             paused = !paused;
         }
     }
+    writingThread.join();
     return 0;
 }
