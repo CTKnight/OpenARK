@@ -104,7 +104,6 @@ int main(int argc, char **argv)
             timestamp_ofs << frameId << " " << std::setprecision(15) << frame->timestamp_ << "\n";
 
             imuBuffer.clear();
-            // extract all imu data ever since pause??
             camera.getImuToTime(frame->timestamp_, imuBuffer);
             for (const auto &imuPair : imuBuffer)
             {
@@ -131,7 +130,7 @@ int main(int argc, char **argv)
             // clear the imu data in camera?
             // extract all imu data ever since pause??
             camera.getImuToTime(frame->timestamp_, imuDispose);
-            imuDispose.clear()
+            imuDispose.clear();
             const std::string NO_SIGNAL_STR = "PAUSED";
             const cv::Scalar RECT_COLOR = cv::Scalar(0, 160, 255);
             const int RECT_WID = 120, RECT_HI = 40;
@@ -156,6 +155,8 @@ int main(int argc, char **argv)
         const auto &infrared2 = frame->images_[1];
         const auto &depth = frame->images_[2];
         const auto &rgb = frame->images_[3];
+        
+        cv::cvtColor(rgb, rgb, CV_RGB2BGR);
         cv::imshow(camera.getModelName() + " RGB", rgb);
         cv::imshow(camera.getModelName() + " Infrared", infrared);
         cv::imshow(camera.getModelName() + " Depth", depth);
