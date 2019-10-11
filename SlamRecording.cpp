@@ -57,7 +57,6 @@ int main(int argc, char **argv)
     path infrared2_path = directory_path / "infrared2/";
     path rgb_path = directory_path / "rgb/";
     path timestamp_path = directory_path / "timestamp.txt";
-    path intrin_path = directory_path / "intrin.txt";
     path imu_path = directory_path / "imu.txt";
     std::vector<path> pathList{directory_path, depth_path, infrared_path, infrared2_path, rgb_path};
     for (const auto &p : pathList)

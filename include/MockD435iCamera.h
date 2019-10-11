@@ -9,26 +9,22 @@
 
 // OpenARK Libraries
 #include "CameraSetup.h"
-
+using boost::filesystem::path;
 namespace ark {
     /**
-    * Class defining the behavior of a generic Intel RealSense Camera using RSSDK2.
-    * Example on how to read from sensor and visualize its output
-    * @include SensorIO.cpp
+    * Mock camera for replaying data
     */
     class MockD435iCamera : public CameraSetup
     {
     public:
 
         /**
-        * Public constructor initializing the RealSense Camera.
-        * @param use_rgb_stream if true, uses the RGB stream and disable the IR stream (which is on by default)
-        *                       This results in a smaller field of view and has an appreciable performance cost.
+        * config the input dir
         */
-        explicit MockD435iCamera();
+        explicit MockD435iCamera(path dir);
 
         /**
-        * Destructor for the RealSense Camera.
+        * Destructor
         */
         ~MockD435iCamera() override;
 
@@ -43,12 +39,11 @@ namespace ark {
         cv::Size getImageSize() const;
 
         /** 
-         * Sets the external hardware sync ans starts the camera
+         * Dummy method
          */
         void start() override;
         /**
-        * Gets the new frame from the sensor (implements functionality).
-        * Updates xyzMap and ir_map.
+        * get a frame per time
         */
         void update(MultiCameraFrame & frame) override;
 
@@ -57,30 +52,15 @@ namespace ark {
         std::vector<ImuPair> getAllImu();
 
     protected:
-
-        /** Converts an D435 raw depth image to an ordered point cloud based on the current camera's intrinsics */
-        void project(const rs2::frame & depth_frame, cv::Mat & xyz_map);
-
-        /**
-        * Reads data from the imu
-        */
-        void imuReader();
-
-        std::shared_ptr<rs2::pipeline> pipe;
-        std::shared_ptr<rs2::pipeline> motion_pipe;
-        rs2::config config;
-        rs2::config motion_config;
-        rs2::depth_sensor* depth_sensor;
-        rs2::device device;
-        rs2_intrinsics depthIntrinsics;
-        std::thread imuReaderThread_;
-        single_consumer_queue<ImuPair> imu_queue_;
-
-        double scale;
-        double last_ts_g;
-        float imu_rate;
+    
+        path dataDir;
+        path imuTxtPath;
+        path timestampTxtPath;
+        path depthDir;
+        path rgbDir;
+        path infraredDir;
+        path infrared2Dir;
         int width, height;
-        bool badInputFlag;
-        std::atomic<bool> kill;
+
     };
 }
