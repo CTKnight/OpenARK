@@ -30,5 +30,6 @@ using boost::filesystem::path;
 int main(int argc, char **argv)
 {
     MockD435iCamera camera(path("./data_path_09-10-2019 17-49-18"));
-
+    camera.start();
+    
 }

@@ -10,16 +10,23 @@
 /** RealSense SDK2 Cross-Platform Depth Camera Backend **/
 namespace ark
 {
-MockD435iCamera::MockD435iCamera(path dir) : dataDir(dir), imuTxtPath(dir / "imu.txt"), timestampTxtPath(dir / "timestamp.txt"), depthDir(dir / "depth/"), rgbDir(dir / "rgb/"), infraredDir(dir / "infrared/"), infrared2Dir(dir / "infrared2/")
+MockD435iCamera::MockD435iCamera(path dir) : 
+dataDir(dir), imuTxtPath(dir / "imu.txt"), timestampTxtPath(dir / "timestamp.txt"), depthDir(dir / "depth/"), 
+rgbDir(dir / "rgb/"), infraredDir(dir / "infrared/"), infrared2Dir(dir / "infrared2/"), firstFrameId(-1)
 {
+
 }
 
 MockD435iCamera::~MockD435iCamera()
 {
+    imuStream.close();
+    timestampStream.close();
 }
 
 void MockD435iCamera::start()
 {
+     imuStream = ifstream(imuTxtPath.string());
+     timestampStream = ifstream(timestampTxtPath.string());
 }
 
 bool MockD435iCamera::getImuToTime(double timestamp, std::vector<ImuPair> &data_out)
@@ -37,10 +44,41 @@ cv::Size MockD435iCamera::getImageSize() const
 {
     return cv::Size(width, height);
 }
+cv::Mat MockD435iCamera::loadImg(path filename)
+{
+    return imread(filename.string(), cv::IMREAD_COLOR);
+}
 
 void MockD435iCamera::update(MultiCameraFrame &frame)
 {
+    std::string line;
+    if (!std::getline(timestampStream, line)) {
+        std::cout << "Unable to read form data or data end reached\n";
+        return;
+    }
+    auto ss = std::stringstream(line);
+    int frameId;
+    double timestamp;
+    ss >> frameId >> timestamp;
+    if (firstFrameId < 0) {
+        firstFrameId = firstFrameId;
+    }
+    frame.frameId_ = frameId;
+    frame.timestamp_ = timestamp;
 
+    // reading img
+    int count = frameId - firstFrameId;
+    std::stringstream fileNamess;
+    // TODO: extract the naming function
+    fileNamess << std::setw(5) << std::setfill('0') << std::to_string(count) << ".jpg";
+    std::string fileName = fileNamess.str();
+
+    std::vector<path> pathList {infraredDir, infrared2Dir, depthDir, rgbDir};
+    frame.images_.resize(pathList.size());
+
+    for (auto i = 0; i < pathList.size(); i++) {
+        frame.images_[i] = loadImg(pathList[i] / fileName);
+    }
 }
 
 } // namespace ark

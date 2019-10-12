@@ -6,10 +6,12 @@
 #include <thread>
 #include "concurrency.h"
 #include <atomic>
+#include <iostream>
 
 // OpenARK Libraries
 #include "CameraSetup.h"
 using boost::filesystem::path;
+using std::ifstream;
 namespace ark {
     /**
     * Mock camera for replaying data
@@ -52,6 +54,8 @@ namespace ark {
         std::vector<ImuPair> getAllImu();
 
     protected:
+
+        cv::Mat loadImg(path filename);
     
         path dataDir;
         path imuTxtPath;
@@ -60,6 +64,9 @@ namespace ark {
         path rgbDir;
         path infraredDir;
         path infrared2Dir;
+        ifstream imuStream;
+        ifstream timestampStream;
+        int firstFrameId;
         int width, height;
 
     };
