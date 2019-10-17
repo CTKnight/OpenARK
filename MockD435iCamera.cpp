@@ -31,7 +31,38 @@ void MockD435iCamera::start()
 
 bool MockD435iCamera::getImuToTime(double timestamp, std::vector<ImuPair> &data_out)
 {
-    
+    std::string line1;
+    std::string line2;
+    std::string line3;
+
+    double ts = 0;
+    double gyro0, gyro1, gyro2, accel0, accel1, accel2;
+    for (;!imuStream.eof() && ts < timestamp;) {
+        // TODO: refactor
+        if (!std::getline(imuStream, line1)) {
+            std::cout << "Unable to read form data or data end reached\n";
+            return false;
+        }
+        if (!std::getline(imuStream, line2)) {
+            std::cout << "Unable to read form data or data end reached\n";
+            return false;
+        }
+        if (!std::getline(imuStream, line3)) {
+            std::cout << "Unable to read form data or data end reached\n";
+            return false;
+        }
+        string placeholder;
+        std::stringstream ss1(line1);
+        std::stringstream ss2(line2);
+        std::stringstream ss3(line3);
+        ss1 >> placeholder >> ts;
+        ss2 >> placeholder >> gyro0 >> gyro1 >> gyro2;
+        ss3 >> placeholder >> accel0 >> accel1 >> accel2;
+        ImuPair imu_out { ts, //convert to nanoseconds, for some reason gyro timestamp is in centiseconds
+                    Eigen::Vector3d(gyro0, gyro1, gyro2),
+                    Eigen::Vector3d(accel0, accel1, accel2)};
+        data_out.emplace_back(imu_out);
+    }
     return true;
 };
 
@@ -79,6 +110,9 @@ void MockD435iCamera::update(MultiCameraFrame &frame)
     for (auto i = 0; i < pathList.size(); i++) {
         frame.images_[i] = loadImg(pathList[i] / fileName);
     }
+    // TODO: should we mock the block time as well?
+    boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
+    printf("frame %d\n", frameId);      
 }
 
 } // namespace ark

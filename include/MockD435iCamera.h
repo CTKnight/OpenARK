@@ -3,6 +3,7 @@
 #include "Version.h"
 #include <opencv2/core.hpp>
 #include <librealsense2/rs.hpp>
+#include <boost/filesystem.hpp>
 #include <thread>
 #include "concurrency.h"
 #include <atomic>
@@ -10,6 +11,7 @@
 
 // OpenARK Libraries
 #include "CameraSetup.h"
+#include "Util.h"
 using boost::filesystem::path;
 using std::ifstream;
 namespace ark {
