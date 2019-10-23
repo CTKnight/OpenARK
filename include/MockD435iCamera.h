@@ -1,5 +1,6 @@
 #pragma once
 // OpenCV Libraries
+#include <ctime>
 #include "Version.h"
 #include <opencv2/core.hpp>
 #include <librealsense2/rs.hpp>
@@ -70,6 +71,6 @@ namespace ark {
         ifstream timestampStream;
         int firstFrameId;
         int width, height;
-
+        time_t startTime;
     };
 }

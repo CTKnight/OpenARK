@@ -12,7 +12,7 @@ namespace ark
 {
 MockD435iCamera::MockD435iCamera(path dir) : 
 dataDir(dir), imuTxtPath(dir / "imu.txt"), timestampTxtPath(dir / "timestamp.txt"), depthDir(dir / "depth/"), 
-rgbDir(dir / "rgb/"), infraredDir(dir / "infrared/"), infrared2Dir(dir / "infrared2/"), firstFrameId(-1)
+rgbDir(dir / "rgb/"), infraredDir(dir / "infrared/"), infrared2Dir(dir / "infrared2/"), firstFrameId(-1), startTime(0)
 {
 
 }
@@ -25,8 +25,8 @@ MockD435iCamera::~MockD435iCamera()
 
 void MockD435iCamera::start()
 {
-     imuStream = ifstream(imuTxtPath.string());
-     timestampStream = ifstream(timestampTxtPath.string());
+    imuStream = ifstream(imuTxtPath.string());
+    timestampStream = ifstream(timestampTxtPath.string());
 }
 
 bool MockD435iCamera::getImuToTime(double timestamp, std::vector<ImuPair> &data_out)
@@ -91,14 +91,19 @@ void MockD435iCamera::update(MultiCameraFrame &frame)
     int frameId;
     double timestamp;
     ss >> frameId >> timestamp;
-    if (firstFrameId < 0) {
-        firstFrameId = firstFrameId;
-    }
+
     frame.frameId_ = frameId;
     frame.timestamp_ = timestamp;
-
+    if (startTime == 0) {
+        startTime = timestamp;
+    }   
+    if (firstFrameId < 0) {
+        firstFrameId = frameId;
+    }
     // reading img
     int count = frameId - firstFrameId;
+    // TODO: not sure if this necessary
+    frame.frameId_ = count;
     std::stringstream fileNamess;
     // TODO: extract the naming function
     fileNamess << std::setw(5) << std::setfill('0') << std::to_string(count) << ".jpg";
@@ -111,8 +116,10 @@ void MockD435iCamera::update(MultiCameraFrame &frame)
         frame.images_[i] = loadImg(pathList[i] / fileName);
     }
     // TODO: should we mock the block time as well?
-    boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
-    printf("frame %d\n", frameId);      
+    boost::this_thread::sleep_for(boost::chrono::milliseconds(33));
+    // TODO: not sure if this necessary
+    printf("frame %d\n", frameId);  
+    std::cout << "Size: " << frame.images_[0].total() << "\n";   
 }
 
 } // namespace ark

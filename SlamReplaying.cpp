@@ -1,6 +1,7 @@
 #include <iostream>
 #include <thread>
 #include <atomic>
+#include <ctime>
 #include "glfwManager.h"
 #include "concurrency.h"
 #include "MockD435iCamera.h"
@@ -53,7 +54,6 @@ int main(int argc, char **argv)
     printf("Camera initialization started...\n");
     fflush(stdout);
     MockD435iCamera camera(dataPath);
-    camera.start();
 
     printf("Camera-IMU initialization complete\n");
     fflush(stdout);
@@ -122,6 +122,7 @@ int main(int argc, char **argv)
     //run until display is closed
     okvis::Time start(0.0);
     int id =0;
+    camera.start();
     while (MyGUI::Manager::running()){
         //printf("test\n");
         //Update the display
