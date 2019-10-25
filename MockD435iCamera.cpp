@@ -114,6 +114,7 @@ void MockD435iCamera::update(MultiCameraFrame &frame)
 
     for (auto i = 0; i < pathList.size(); i++) {
         frame.images_[i] = loadImg(pathList[i] / fileName);
+        
     }
     // TODO: should we mock the block time as well?
     boost::this_thread::sleep_for(boost::chrono::milliseconds(33));

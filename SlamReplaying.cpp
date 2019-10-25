@@ -123,34 +123,42 @@ int main(int argc, char **argv)
     okvis::Time start(0.0);
     int id =0;
     camera.start();
-    while (MyGUI::Manager::running()){
-        //printf("test\n");
-        //Update the display
-        MyGUI::Manager::update();
-
-        try {
-            //Get current camera frame
-            MultiCameraFrame::Ptr frame(new MultiCameraFrame);
-            camera.update(*frame);
-
-            //Get or wait for IMU Data until current frame 
-            //std::cout << "frame: " << frame.timestamp_ << std::endl;
-            std::vector<ImuPair> imuData;
-            camera.getImuToTime(frame->timestamp_,imuData);
-            //std::cout << "numimu: " << imuData.size() << std::endl;
-
-            //Add data to SLAM system
-            slam.PushIMU(imuData);
-            slam.PushFrame(frame);
-        } catch (...) {
-            printf("Exception catched\n");
-        }
-
-
+    for (;;) {
+        MultiCameraFrame::Ptr frame(new MultiCameraFrame);
+        camera.update(*frame);
         int k = cv::waitKey(1);
-        if (k == 'q' || k == 'Q' || k == 27) break; // 27 is ESC
-
+        if (k == 'q' || k == 'Q' || k == 27)
+            break; // 27 is ESC
     }
+    // while (MyGUI::Manager::running()){
+    //     //printf("test\n");
+    //     //Update the display
+    //     MyGUI::Manager::update();
+
+    //     try {
+    //         //Get current camera frame
+    //         MultiCameraFrame::Ptr frame(new MultiCameraFrame);
+    //         camera.update(*frame);
+
+    //         //Get or wait for IMU Data until current frame 
+    //         //std::cout << "frame: " << frame.timestamp_ << std::endl;
+    //         std::vector<ImuPair> imuData;
+    //         camera.getImuToTime(frame->timestamp_,imuData);
+    //         //std::cout << "numimu: " << imuData.size() << std::endl;
+
+    //         //Add data to SLAM system
+    //         slam.PushIMU(imuData);
+    //         slam.PushFrame(frame);
+            
+    //     } catch (...) {
+    //         printf("Exception catched\n");
+    //     }
+
+
+    //     int k = cv::waitKey(1);
+    //     if (k == 'q' || k == 'Q' || k == 27) break; // 27 is ESC
+
+    // }
     printf("\nTerminate...\n");
     // Clean up
     slam.ShutDown();

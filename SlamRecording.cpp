@@ -38,7 +38,7 @@ std::string getTimeTag()
 void saveImg(int id, const cv::Mat &img, const path imgDir)
 {
     std::stringstream fileName;
-    fileName << std::setw(5) << std::setfill('0') << std::to_string(id) << ".jpg";
+    fileName << std::setw(5) << std::setfill('0') << std::to_string(id) << ".png";
     const std::string dst = (imgDir / fileName.str()).string();
     cout << "Writing " << dst << endl;
     cv::imwrite(dst, img);
@@ -77,7 +77,6 @@ int main(int argc, char **argv)
     std::vector<ImuPair> imuDispose;
     std::atomic_bool paused = true;
     std::atomic_bool quit = false;
-    int frameNum = 0;
     single_consumer_queue<std::shared_ptr<MultiCameraFrame>> img_queue;
     std::thread writingThread([&]() {
         std::ofstream imu_ofs(imu_path.string());
@@ -93,13 +92,13 @@ int main(int argc, char **argv)
             const auto frameId = frame->frameId_;
             const auto &infrared = frame->images_[0];
             const auto &infrared2 = frame->images_[1];
-            const auto &depth = frame->images_[2];
+            const auto &depth = frame->images_[4];
             const auto &rgb = frame->images_[3];
 
-            saveImg(frameNum, infrared, infrared_path);
-            saveImg(frameNum, infrared2, infrared2_path);
-            saveImg(frameNum, depth, depth_path);
-            saveImg(frameNum, rgb, rgb_path);
+            saveImg(frameId, infrared, infrared_path);
+            saveImg(frameId, infrared2, infrared2_path);
+            saveImg(frameId, depth, depth_path);
+            saveImg(frameId, rgb, rgb_path);
 
             timestamp_ofs << frameId << " " << std::setprecision(15) << frame->timestamp_ << "\n";
 
@@ -111,7 +110,6 @@ int main(int argc, char **argv)
                         << "gy " << imuPair.gyro[0] << " " << imuPair.gyro[1] << " " << imuPair.gyro[2] << "\n"
                         << "ac " << imuPair.accel[0] << " " << imuPair.accel[1] << " " << imuPair.accel[2] << "\n";
             }
-            frameNum++;
         }
         imu_ofs.close();
     });
@@ -120,8 +118,9 @@ int main(int argc, char **argv)
     {
         // 0: infrared
         // 1: infrared2
-        // 2: depth
+        // 2: depth(point cloud)
         // 3: rgb
+        // 4: depth raw
         auto frame = std::make_shared<MultiCameraFrame>();
         camera.update(*frame);
 
@@ -153,7 +152,7 @@ int main(int argc, char **argv)
         const auto frameId = frame->frameId_;
         const auto &infrared = frame->images_[0];
         const auto &infrared2 = frame->images_[1];
-        const auto &depth = frame->images_[2];
+        const auto &depth = frame->images_[4];
         const auto &rgb = frame->images_[3];
         
         cv::cvtColor(rgb, rgb, CV_RGB2BGR);
