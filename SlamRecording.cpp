@@ -14,6 +14,7 @@
 #include <nanoflann.hpp>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
+#include <boost/archive/text_oarchive.hpp>
 
 // OpenARK Libraries
 #include "Version.h"
@@ -57,6 +58,8 @@ int main(int argc, char **argv)
     path infrared2_path = directory_path / "infrared2/";
     path rgb_path = directory_path / "rgb/";
     path timestamp_path = directory_path / "timestamp.txt";
+    path intrin_path = directory_path / "intrin.bin";
+    path meta_path = directory_path / "meta.txt";
     path imu_path = directory_path / "imu.txt";
     std::vector<path> pathList{directory_path, depth_path, infrared_path, infrared2_path, rgb_path};
     for (const auto &p : pathList)
@@ -81,6 +84,14 @@ int main(int argc, char **argv)
     std::thread writingThread([&]() {
         std::ofstream imu_ofs(imu_path.string());
         std::ofstream timestamp_ofs(timestamp_path.string());
+        {
+            std::ofstream intrin_ofs(intrin_path.string());
+            boost::archive::text_oarchive oa(intrin_ofs);
+            oa << camera.getDepthIntrinsics();
+
+            std::ofstream meta_ofs(meta_path.string());
+            meta_ofs << "depth " << camera.getDepthScale();
+        }
         auto frame = std::make_shared<MultiCameraFrame>();
         while (!quit)
         {
@@ -154,7 +165,7 @@ int main(int argc, char **argv)
         const auto &infrared2 = frame->images_[1];
         const auto &depth = frame->images_[4];
         const auto &rgb = frame->images_[3];
-        
+
         cv::cvtColor(rgb, rgb, CV_RGB2BGR);
         cv::imshow(camera.getModelName() + " RGB", rgb);
         cv::imshow(camera.getModelName() + " Infrared", infrared);

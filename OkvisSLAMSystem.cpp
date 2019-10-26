@@ -205,13 +205,14 @@ namespace ark {
         }
 
         if (t_image - start_ > deltaT_) {
+            std::cout << "> deltaT_\n";
             if(mMapFrameAvailableHandler.size()>0){
                 frame_queue_.enqueue({ frame});
             }
             num_frames_++;
             for (size_t i = 0; i < frame->images_.size(); i++) {
                 if (i < parameters_.nCameraSystem.numCameras()){
-                    //printf("add image: %i\n", i);
+                    printf("add image: %i\n", i);
                     okvis_estimator_->addImage(t_image, i, frame->images_[i]);
                 }
             }

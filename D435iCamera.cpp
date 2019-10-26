@@ -166,7 +166,6 @@ namespace ark {
             // 16UC1
             // TODO: save intrinsics
             // project in mock
-            // save in PNG
             if (frame.images_[4].empty()) frame.images_[4] = cv::Mat(cv::Size(width,height), CV_16UC1);
             // 16 bits = 2 bytes
             std::memcpy(frame.images_[4].data, depth.get_data(),width * height * 2);
@@ -214,4 +213,11 @@ namespace ark {
         }
     }
 
+    const rs2_intrinsics &D435iCamera::getDepthIntrinsics() {
+        return depthIntrinsics;
+    }
+
+    double D435iCamera::getDepthScale() {
+        return scale;
+    }
 }

@@ -56,6 +56,12 @@ namespace ark {
 
         std::vector<ImuPair> getAllImu();
 
+        const rs2_intrinsics &getDepthIntrinsics();
+
+        double getDepthScale();
+
+        void project(const cv::Mat depth_frame, cv::Mat &xyz_map);
+
     protected:
 
         /** Converts an D435 raw depth image to an ordered point cloud based on the current camera's intrinsics */

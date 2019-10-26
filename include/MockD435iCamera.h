@@ -52,6 +52,8 @@ namespace ark {
         */
         void update(MultiCameraFrame & frame) override;
 
+        void project(const cv::Mat depth_frame, cv::Mat &xyz_map);
+
         bool getImuToTime(double timestamp, std::vector<ImuPair>& data_out);
 
         std::vector<ImuPair> getAllImu();
@@ -63,14 +65,18 @@ namespace ark {
         path dataDir;
         path imuTxtPath;
         path timestampTxtPath;
+        path metaTxtPath;
+        path intrinFilePath;
         path depthDir;
         path rgbDir;
         path infraredDir;
         path infrared2Dir;
         ifstream imuStream;
         ifstream timestampStream;
+        rs2_intrinsics depthIntrinsics;
         int firstFrameId;
         int width, height;
         time_t startTime;
+        double scale;
     };
 }
