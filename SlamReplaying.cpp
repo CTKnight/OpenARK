@@ -143,8 +143,8 @@ int main(int argc, char **argv)
             const auto frameId = frame->frameId_;
             const auto &infrared = frame->images_[0];
             const auto &infrared2 = frame->images_[1];
-            const auto &depth = frame->images_[4];
             const auto &rgb = frame->images_[3];
+            const auto &depth = frame->images_[4];
 
             cv::imshow(std::string(camera.getModelName()) + " RGB", rgb);
             cv::imshow(std::string(camera.getModelName()) + " Infrared", infrared);

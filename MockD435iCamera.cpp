@@ -151,10 +151,14 @@ void MockD435iCamera::update(MultiCameraFrame &frame)
     std::vector<path> pathList{infraredDir, infrared2Dir, depthDir, rgbDir, depthDir};
     frame.images_.resize(pathList.size() + 1);
 
-    for (auto i = 0; i < pathList.size(); i++)
-    {
-        frame.images_[i] = loadImg(pathList[i] / fileName);
-    }
+    // for (auto i = 0; i < pathList.size(); i++)
+    // {
+    //     frame.images_[i] = loadImg(pathList[i] / fileName);
+    // }
+    frame.images_[0] = cv::imread((pathList[0] / fileName).string(), cv::IMREAD_GRAYSCALE | cv::IMREAD_ANYDEPTH);
+    frame.images_[1] = cv::imread((pathList[1] / fileName).string(), cv::IMREAD_GRAYSCALE | cv::IMREAD_ANYDEPTH);
+    frame.images_[3] = cv::imread((pathList[3] / fileName).string(), cv::IMREAD_COLOR | cv::IMREAD_ANYDEPTH);
+    frame.images_[4] = cv::imread((pathList[4] / fileName).string(), cv::IMREAD_GRAYSCALE | cv::IMREAD_ANYDEPTH);
 
     // project the point cloud at 2
     std::cout << "before project\n";
