@@ -52,7 +52,7 @@ namespace ark {
         */
         void update(MultiCameraFrame & frame) override;
 
-        void project(const cv::Mat depth_frame, cv::Mat &xyz_map);
+        void project(const cv::Mat &depth_frame, cv::Mat &xyz_map);
 
         bool getImuToTime(double timestamp, std::vector<ImuPair>& data_out);
 

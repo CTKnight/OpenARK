@@ -2,7 +2,8 @@
 #include <thread>
 #include <atomic>
 #include <ctime>
-#include <exception> 
+#include <csignal>
+#include <exception>
 #include "glfwManager.h"
 #include "concurrency.h"
 #include "MockD435iCamera.h"
@@ -12,9 +13,19 @@
 using namespace ark;
 using boost::filesystem::path;
 
+void signal_handler(int signum)
+{
+    cout << "Interrupt signal (" << signum << ") received.\n";
+    exit(signum);
+}
+
 int main(int argc, char **argv)
 {
-
+    std::signal(SIGINT, signal_handler);
+    std::signal(SIGILL, signal_handler);
+    std::signal(SIGABRT, signal_handler);
+    std::signal(SIGSEGV, signal_handler);
+    std::signal(SIGTERM, signal_handler);
     if (argc > 5)
     {
         std::cerr << "Usage: ./" << argv[0] << " [configuration-yaml-file] [vocabulary-file] [skip-first-seconds] [data_path]" << std::endl
@@ -163,11 +174,13 @@ int main(int argc, char **argv)
             slam.PushFrame(frame);
             printf("after slam frame\n");
         }
-        catch (std::exception &ex)
+        catch (const std::exception &e)
         {
-            std::cout << ex.what();
-        }catch(...) {
-            printf("Exception catched\n");
+            std::cerr << e.what() << '\n'; // or whatever
+        }
+        catch (...)
+        {
+            std::cout << "ex catched\n";
         }
         int k = cv::waitKey(1);
         if (k == 'q' || k == 'Q' || k == 27)

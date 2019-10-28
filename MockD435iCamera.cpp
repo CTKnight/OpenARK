@@ -14,6 +14,8 @@ namespace ark
 MockD435iCamera::MockD435iCamera(path dir) : dataDir(dir), imuTxtPath(dir / "imu.txt"), intrinFilePath(dir / "intrin.bin"), timestampTxtPath(dir / "timestamp.txt"), depthDir(dir / "depth/"),
                                              rgbDir(dir / "rgb/"), infraredDir(dir / "infrared/"), infrared2Dir(dir / "infrared2/"), firstFrameId(-1), startTime(0)
 {
+    width = 640;
+    height = 480;
 }
 
 MockD435iCamera::~MockD435iCamera()
@@ -30,6 +32,8 @@ void MockD435iCamera::start()
         auto &intrinStream = ifstream(intrinFilePath.string());
         boost::archive::text_iarchive ia(intrinStream);
         ia >> depthIntrinsics;
+
+        std::cout << "depthIntrin: fx: " << depthIntrinsics.fx << " fy: " << depthIntrinsics.fy << " ppx: " << depthIntrinsics.ppx << " ppy: " << depthIntrinsics.ppy << '\n';
 
         auto &metaStream = ifstream(metaTxtPath.string());
         std::string ph;
@@ -92,7 +96,7 @@ cv::Mat MockD435iCamera::loadImg(path filename)
     return imread(filename.string(), cv::IMREAD_COLOR);
 }
 
-void MockD435iCamera::project(const cv::Mat depth_frame, cv::Mat &xyz_map)
+void MockD435iCamera::project(const cv::Mat &depth_frame, cv::Mat &xyz_map)
 {
     const uint16_t *depth_data = (const uint16_t *)depth_frame.data;
 
@@ -161,16 +165,21 @@ void MockD435iCamera::update(MultiCameraFrame &frame)
     frame.images_[4] = cv::imread((pathList[4] / fileName).string(), cv::IMREAD_GRAYSCALE | cv::IMREAD_ANYDEPTH);
 
     // project the point cloud at 2
+    // TODO: should we mock the block time as well?
+    //boost::this_thread::sleep_for(boost::chrono::milliseconds(33));
+    // TODO: not sure if this necessary
+    printf("frame %d\n", frameId);
+    std::cout << "RGB Size: " << frame.images_[3].total() << " type: " << frame.images_[3].type() << "\n";
+
+    std::cout << "DEPTH Size: " << frame.images_[4].total() << " type: " << frame.images_[4].type() << "\n";
+
     std::cout << "before project\n";
     frame.images_[2] = cv::Mat(cv::Size(width,height), CV_32FC3);
     project(frame.images_[4], frame.images_[2]);
     frame.images_[2] = frame.images_[2]*scale;
     std::cout << "after project\n";
-    // TODO: should we mock the block time as well?
-    //boost::this_thread::sleep_for(boost::chrono::milliseconds(33));
-    // TODO: not sure if this necessary
-    printf("frame %d\n", frameId);
-    std::cout << "Size: " << frame.images_[0].total() << "\n";
+
+    std::cout << "Depth cloud: " << frame.images_[2].total() << "\n";
 }
 
 } // namespace ark
