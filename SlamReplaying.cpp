@@ -156,8 +156,11 @@ int main(int argc, char **argv)
             const auto &infrared2 = frame->images_[1];
             const auto &rgb = frame->images_[3];
             const auto &depth = frame->images_[4];
+            
 
             cv::imshow(std::string(camera.getModelName()) + " RGB", rgb);
+            // tmp fix for the preview window in MyGUI
+            cv::cvtColor(rgb, rgb, CV_RGB2BGR); 
             cv::imshow(std::string(camera.getModelName()) + " Infrared", infrared);
             cv::imshow(std::string(camera.getModelName()) + " Depth", depth);
             //Get or wait for IMU Data until current frame
