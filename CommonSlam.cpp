@@ -9,6 +9,21 @@ std::string getTimeTag()
     return oss.str();
 }
 
+void writeVector3d(std::ofstream &os, const Eigen::Vector3d &v) {
+    os << v.x() << " " << v.y() << " " << v.z() << "\n";
+}
+
+void writePath(const std::string &filePath, const MyGUI::Path &traj) {
+    std::ofstream os(filePath);
+    os << "Color: ";
+    writeVector3d(os, traj.color);
+    os << "\n";
+    os << "Coord: \n";
+    for (const auto &coord: traj.nodes) {
+        writeVector3d(os, coord);
+    }
+}
+
 void commonSlam(
     OkvisSLAMSystem &slam,
     ImuCamera &camera,
@@ -147,16 +162,15 @@ void commonSlam(
     const auto &nodes = path1.nodes;
     if (!nodes.empty()) {
         if (((int)configFile["saveTraj"]) == 1) {
-            // const path trajBin = std::string("./traj_") + getTimeTag() + ".bin";
-            // std::ofstream intrin_ofs(trajBin.string());
-            // boost::archive::text_oarchive oa(intrin_ofs);
-            // oa << path1;
+            const path trajTxt = std::string("./traj_") + getTimeTag() + ".txt";
+            writePath(trajTxt.string(), path1);
         }
         if (((int)configFile["printLoopError"]) == 1) {
             const auto &first = nodes.front();
             const auto &last = nodes.back();
             const auto &diff = last - first;
             std::cout << "Distance from first to end: " << sqrt(diff.dot(diff)) << "\n";
+            std::cout << "Press any key to exit\n";
             cv::waitKey(0);
         }
     }
