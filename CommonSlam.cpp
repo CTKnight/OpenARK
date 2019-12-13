@@ -5,7 +5,7 @@ std::string getTimeTag()
     std::ostringstream oss;
     auto t = std::time(nullptr);
     auto tm = *std::localtime(&t);
-    oss << std::put_time(&tm, "%d-%m-%Y %H-%M-%S");
+    oss << std::put_time(&tm, "%d-%m-%Y-%H-%M-%S");
     return oss.str();
 }
 
@@ -60,7 +60,7 @@ void commonSlam(
         path1.add_node(transform.translation());
         axis2.set_transform(transform);
         ar_win.set_camera(transform);
-        ar_win.set_image(frame->images_[3]);
+        ar_win.set_image(frame->images_[0]);
         if (ar_win.clicked())
         {
 
@@ -118,13 +118,7 @@ void commonSlam(
             }
             const auto &infrared = frame->images_[0];
             const auto &infrared2 = frame->images_[1];
-            const auto &rgb = frame->images_[3];
 
-
-            //std::cout << "RGB: " << rgb.total() << "\n";
-            //cv::imshow(std::string(camera.getModelName()) + " RGB", rgb);
-            // tmp fix for the preview window in MyGUI
-            //cv::cvtColor(rgb, rgb, CV_RGB2BGR); 
             cv::imshow(std::string(camera.getModelName()) + " Infrared", infrared);
             //Get or wait for IMU Data until current frame
             //std::cout << "frame size: " << rgb.total() << std::endl;
@@ -135,8 +129,6 @@ void commonSlam(
 
             //Add data to SLAM system
             slam.PushIMU(imuData);
-            // make it the same as real camera
-            frame->images_.resize(4);
             slam.PushFrame(frame);
         }
         catch (const std::exception &e)
@@ -148,7 +140,6 @@ void commonSlam(
             std::cout << "ex catched\n";
         }
         const auto isReset = slam.okvis_estimator_->isReset();
-        std::cout << "slam reset? : " << isReset << "\n";
         if (isReset) {
             traj_win.msg_ = " *Reseting*";
             path1.clear();
