@@ -1,11 +1,26 @@
 #include "CommonSlam.h"
 
+std::string getTimeTag()
+{
+    std::ostringstream oss;
+    auto t = std::time(nullptr);
+    auto tm = *std::localtime(&t);
+    oss << std::put_time(&tm, "%d-%m-%Y %H-%M-%S");
+    return oss.str();
+}
+
 void commonSlam(
     OkvisSLAMSystem &slam,
     ImuCamera &camera,
     const cv::FileStorage &configFile,
     bool isReplay
 ) {
+        //setup display
+    if (!MyGUI::Manager::init())
+    {
+        fprintf(stdout, "Failed to initialize GLFW\n");
+        exit(-1);
+    }
     //Window for displaying the path
     MyGUI::CameraWindow traj_win("Traj Viewer", 640 * 2, 480 * 2);
     MyGUI::ARCameraWindow ar_win("AR Viewer", 640 * 2.5, 480 * 2.5, GL_LUMINANCE, GL_UNSIGNED_BYTE, 6.16403320e+02, 6.16171021e+02, 3.18104584e+02, 2.33643127e+02, 0.01, 100);
@@ -129,6 +144,23 @@ void commonSlam(
         if (k == 'q' || k == 'Q' || k == 27)
             break; // 27 is ESC
     }
+    const auto &nodes = path1.nodes;
+    if (!nodes.empty()) {
+        if (((int)configFile["saveTraj"]) == 1) {
+            // const path trajBin = std::string("./traj_") + getTimeTag() + ".bin";
+            // std::ofstream intrin_ofs(trajBin.string());
+            // boost::archive::text_oarchive oa(intrin_ofs);
+            // oa << path1;
+        }
+        if (((int)configFile["printLoopError"]) == 1) {
+            const auto &first = nodes.front();
+            const auto &last = nodes.back();
+            const auto &diff = last - first;
+            std::cout << "Distance from first to end: " << sqrt(diff.dot(diff)) << "\n";
+            cv::waitKey(0);
+        }
+    }
+
     printf("\nTerminate...\n");
     // Clean up
     slam.ShutDown();

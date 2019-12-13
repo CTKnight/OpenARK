@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <thread>
+#include <cmath>
 #include "CameraSetup.h"
 #include "OkvisSLAMSystem.h"
 #include "glfwManager.h"

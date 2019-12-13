@@ -61,13 +61,6 @@ int main(int argc, char **argv)
     OkvisSLAMSystem slam(vocabFilename, configFilename);
     cv::FileStorage configFile(configFilename, cv::FileStorage::READ);
 
-    //setup display
-    if (!MyGUI::Manager::init())
-    {
-        fprintf(stdout, "Failed to initialize GLFW\n");
-        return -1;
-    }
-
     printf("Camera initialization started...\n");
     fflush(stdout);
     MockD435iCamera camera(dataPath);
