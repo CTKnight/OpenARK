@@ -17,5 +17,8 @@ namespace ark{
         virtual void update(MultiCameraFrame & frame) =0;
 
     }; //CameraSetup
-
+    class ImuCamera: public CameraSetup {
+    public:
+        virtual bool getImuToTime(double timestamp, std::vector<ImuPair>& data_out) = 0;
+    };
 } //ark

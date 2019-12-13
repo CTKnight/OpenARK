@@ -16,7 +16,7 @@ namespace ark {
     * Example on how to read from sensor and visualize its output
     * @include SensorIO.cpp
     */
-    class D435iCamera : public CameraSetup
+    class D435iCamera : public ImuCamera
     {
     public:
 
@@ -54,7 +54,7 @@ namespace ark {
         */
         void update(MultiCameraFrame & frame) override;
 
-        bool getImuToTime(double timestamp, std::vector<ImuPair>& data_out);
+        bool getImuToTime(double timestamp, std::vector<ImuPair>& data_out) override;
 
         const rs2_intrinsics &getDepthIntrinsics();
 

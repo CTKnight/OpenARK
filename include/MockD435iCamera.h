@@ -19,7 +19,7 @@ namespace ark {
     /**
     * Mock camera for replaying data
     */
-    class MockD435iCamera : public CameraSetup
+    class MockD435iCamera : public ImuCamera
     {
     public:
 
@@ -54,7 +54,7 @@ namespace ark {
 
         void project(const cv::Mat &depth_frame, cv::Mat &xyz_map);
 
-        bool getImuToTime(double timestamp, std::vector<ImuPair>& data_out);
+        bool getImuToTime(double timestamp, std::vector<ImuPair>& data_out) override;
 
         std::vector<ImuPair> getAllImu();
 

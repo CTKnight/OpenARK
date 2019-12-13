@@ -257,6 +257,7 @@ set(
   glfwManager.cpp
   OkvisSLAMSystem.cpp
   MockD435iCamera.cpp
+  CommonSlam.cpp
 )
 
 set(
@@ -293,6 +294,7 @@ set(
   ${INCLUDE_DIR}/CorrespondenceRansac.h
   ${INCLUDE_DIR}/UKF.h
   ${INCLUDE_DIR}/MockD435iCamera.h
+  ${INCLUDE_DIR}/CommonSlam.h
   stdafx.h
 )
 
