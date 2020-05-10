@@ -169,6 +169,7 @@ namespace ark {
                     if (sparseMap->detectLoopClosure(keyframe)) {
                         cout<<"Here: "<<i<<endl;
                         active_map_index = i;
+                        
                         // delete all the new map after active map
                         sparse_map_vector.resize(active_map_index+1);
                         cout << "Deleting newer maps after: " << active_map_index << endl;

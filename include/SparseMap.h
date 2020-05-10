@@ -110,6 +110,7 @@ class SparseMap {
         {
           // std::cout << result.match << " " << bowId << std::endl; 
           loop_kf = bowFrameMap_[result.match];
+          
           if (loop_kf) {
             cout << "detectLoopClosure: Loop found with image " << loop_kf->frameId_ << "!" << endl;
           } else {
@@ -119,7 +120,7 @@ class SparseMap {
         }
         else
         {
-          cout << "Detector result status: " << result.status << "\n";
+          //cout << "Detector result status: " << result.status << "\n";
           return false; //pose added to graph, no loop detected, nothing left to do
         }
       std::vector<cv::DMatch> matches; 
@@ -171,6 +172,7 @@ class SparseMap {
   bool addKeyframe(MapKeyFrame::Ptr kf){
     //std::cout << "PROCESS KEYFRAME: " << kf->frameId_ << std::endl;
     frameMap_[kf->frameId_]=kf;
+    //cout<<"\nCoordinate:"<<kf->T_WS();
     kf->previousKeyframeId_ = currentKeyframeId;
     kf->previousKeyframe_ = getCurrentKeyframe();
 

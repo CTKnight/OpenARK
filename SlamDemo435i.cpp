@@ -60,6 +60,7 @@ int main(int argc, char **argv)
     MyGUI::ARCameraWindow ar_win("AR Viewer", 640*2.5,480*2.5, GL_RGB, GL_UNSIGNED_BYTE,  6.16403320e+02, 6.16171021e+02, 3.18104584e+02, 2.33643127e+02,0.01,100);
     traj_win.set_pos(640*2.5,100);
     ar_win.set_pos(0,100);
+    std::map<int, MyGUI::Path> pathMap;
     MyGUI::Path path1("path1", Eigen::Vector3d(1, 0, 0));
     MyGUI::Axis axis1("axis1", .1);
     MyGUI::Axis axis2("axis2", 1);
@@ -75,7 +76,7 @@ int main(int argc, char **argv)
 
 
     //Recieves output from SLAM system and displays to the screen
-    FrameAvailableHandler handler([&path1, &axis2, &ar_win, &cubes, &T_K_cubes, &K_cubes](MultiCameraFrame::Ptr frame) {
+    FrameAvailableHandler handler([&](MultiCameraFrame::Ptr frame) {
         Eigen::Affine3d transform(frame->T_WC(3));
         path1.add_node(transform.translation());
         axis2.set_transform(transform);
